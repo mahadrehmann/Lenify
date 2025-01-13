@@ -19,99 +19,80 @@ function secondsToMinutesSeconds(seconds) {
 
 async function getTracks(folder) {
     currFolder = folder;
-    let a = await fetch(`/${folder}/`)
-    let response = await a.text();
-    let div = document.createElement("div")
-    div.innerHTML = response;
-    let as = div.getElementsByTagName("a")
-    tracks = []
-    for (let index = 0; index < as.length; index++) {
-        const element = as[index];
-        if (element.href.endsWith(".mp3")) {
-            tracks.push(element.href.split(`/${folder}/`)[1])
-        }
-    }
- 
+    const response = await fetch(`/tracks.json`); // Fetch the JSON file
+    const data = await response.json();
 
+    // Filter tracks belonging to the specified folder
+    tracks = data[folder] || [];
 
     // Show all the tracks in the playlist
-    let trackUL = document.querySelector(".trackList").getElementsByTagName("ul")[0]
-    trackUL.innerHTML = ""
+    let trackUL = document.querySelector(".trackList ul");
+    trackUL.innerHTML = "";
     for (const track of tracks) {
-        trackUL.innerHTML = trackUL.innerHTML + `<li><img class="invert" width="34" src="img/music.svg" alt="">
-                            <div class="info">
-                                <div> ${track.replaceAll("%20", " ")}</div>
-                                <div></div>
-                            </div>
-                            <div class="playnow">
-                                <span>Play Now</span>
-                                <img class="invert" src="img/play.svg" alt="">
-                            </div> </li>`;
+        trackUL.innerHTML += `
+            <li>
+                <img class="invert" width="34" src="img/music.svg" alt="">
+                <div class="info">
+                    <div>${track.name}</div>
+                    <div></div>
+                </div>
+                <div class="playnow">
+                    <span>Play Now</span>
+                    <img class="invert" src="img/play.svg" alt="">
+                </div>
+            </li>`;
     }
 
-    // Attach an event listener to each track
-    Array.from(document.querySelector(".trackList").getElementsByTagName("li")).forEach(e => {
-        e.addEventListener("click", element => {
-            playMusic(e.querySelector(".info").firstElementChild.innerHTML.trim())
+    // Attach event listeners
+    Array.from(document.querySelectorAll(".trackList li")).forEach(e => {
+        e.addEventListener("click", () => {
+            playMusic(e.querySelector(".info").firstElementChild.textContent.trim());
+        });
+    });
 
-        })
-    })
-
-    return tracks
+    return tracks;
 }
 
 const playMusic = (track, pause = false) => {
-    currentTrack.src = `/${currFolder}/` + track
+    currentTrack.src = `/tracks/${currFolder}/` + track; // Added `/tracks/` to the path
     if (!pause) {
-        currentTrack.play()
-        play.src = "img/pause.svg"
+        currentTrack.play();
+        play.src = "img/pause.svg";
     }
-    document.querySelector(".trackinfo").innerHTML = decodeURI(track)
-    document.querySelector(".tracktime").innerHTML = "00:00 / 00:00"
-
-
+    document.querySelector(".trackinfo").innerHTML = decodeURI(track);
+    document.querySelector(".tracktime").innerHTML = "00:00 / 00:00";
 }
 
 async function displayAlbums() {
-    console.log("displaying albums")
-    let a = await fetch(`/tracks/`)
-    let response = await a.text();
-    let div = document.createElement("div")
-    div.innerHTML = response;
-    let anchors = div.getElementsByTagName("a")
-    let cardContainer = document.querySelector(".cardContainer")
-    let array = Array.from(anchors)
-    for (let index = 0; index < array.length; index++) {
-        const e = array[index]; 
-        if (e.href.includes("/tracks") && !e.href.includes(".htaccess")) {
-            let folder = e.href.split("/").slice(-2)[0]
-            // Get the metadata of the folder
-            let a = await fetch(`/tracks/${folder}/info.json`)
-            let response = await a.json(); 
-            cardContainer.innerHTML = cardContainer.innerHTML + ` <div data-folder="${folder}" class="card">
-            <div class="play">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path d="M5 20V4L19 12L5 20Z" stroke="#141B34" fill="#000" stroke-width="1.5"
-                        stroke-linejoin="round" />
-                </svg>
-            </div>
+    const response = await fetch(`/tracks.json`);
+    const data = await response.json();
 
-            <img src="/tracks/${folder}/cover.jpg" alt="">
-            <h2>${response.title}</h2>
-            <p>${response.description}</p>
-        </div>`
-        }
+    const cardContainer = document.querySelector(".cardContainer");
+    cardContainer.innerHTML = "";
+
+    for (const [folder, tracks] of Object.entries(data)) {
+        const albumInfo = await fetch(`/tracks/${folder}/info.json`).then(res => res.json());
+        cardContainer.innerHTML += `
+            <div data-folder="${folder}" class="card">
+                <div class="play">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path d="M5 20V4L19 12L5 20Z" stroke="#141B34" fill="#000" stroke-width="1.5" stroke-linejoin="round" />
+                    </svg>
+                </div>
+                <img src="/tracks/${folder}/cover.jpg" alt="">
+                <h2>${albumInfo.title}</h2>
+                <p>${albumInfo.description}</p>
+            </div>`;
     }
 
-    // Load the playlist whenever card is clicked
-    Array.from(document.getElementsByClassName("card")).forEach(e => { 
-        e.addEventListener("click", async item => {
-            tracks = await getTracks(`tracks/${item.currentTarget.dataset.folder}`)  
-            playMusic(tracks[0])
-
-        })
-    })
+    // Attach click event listeners to cards
+    document.querySelectorAll(".card").forEach(card => {
+        card.addEventListener("click", async () => {
+            const folder = card.dataset.folder;
+            tracks = await getTracks(folder);
+            playMusic(tracks[0].name);
+        });
+    });
 }
 
 async function main() {
@@ -121,7 +102,6 @@ async function main() {
 
     // Display all the albums on the page
     await displayAlbums()
-
 
     // Attach an event listener to play, next and previous
     play.addEventListener("click", () => {
@@ -183,30 +163,25 @@ async function main() {
     document.querySelector(".range").getElementsByTagName("input")[0].addEventListener("change", (e) => {
         console.log("Setting volume to", e.target.value, "/ 100")
         currentTrack.volume = parseInt(e.target.value) / 100
-        if (currentTrack.volume >0){
+        if (currentTrack.volume > 0) {
             document.querySelector(".volume>img").src = document.querySelector(".volume>img").src.replace("mute.svg", "volume.svg")
         }
     })
 
     // Add event listener to mute the track
-    document.querySelector(".volume>img").addEventListener("click", e=>{ 
-        if(e.target.src.includes("volume.svg")){
+    document.querySelector(".volume>img").addEventListener("click", e => {
+        if (e.target.src.includes("volume.svg")) {
             e.target.src = e.target.src.replace("volume.svg", "mute.svg")
             currentTrack.volume = 0;
             document.querySelector(".range").getElementsByTagName("input")[0].value = 0;
         }
-        else{
+        else {
             e.target.src = e.target.src.replace("mute.svg", "volume.svg")
             currentTrack.volume = .10;
             document.querySelector(".range").getElementsByTagName("input")[0].value = 10;
         }
 
     })
-
-
-
-
-
 }
 
 main() 
