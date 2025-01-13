@@ -116,7 +116,7 @@ async function displayAlbums() {
 
 async function main() {
     // Get the list of all the tracks
-    await getTracks("tracks/ncs")
+    await getTracks("tracks/1.Nasheeds")
     playMusic(tracks[0], true)
 
     // Display all the albums on the page
