@@ -1,0 +1,4 @@
+[[redirects]]
+  from = "/tracks/*"
+  to = "/tracks/:splat"
+  status = 200
