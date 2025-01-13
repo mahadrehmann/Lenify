@@ -16,48 +16,68 @@ function secondsToMinutesSeconds(seconds) {
 
     return `${formattedMinutes}:${formattedSeconds}`;
 }
-
 async function getTracks(folder) {
     currFolder = folder;
-    let a = await fetch(`/${folder}/`)
-    let response = await a.text();
-    let div = document.createElement("div")
-    div.innerHTML = response;
-    let as = div.getElementsByTagName("a")
-    tracks = []
-    for (let index = 0; index < as.length; index++) {
-        const element = as[index];
-        if (element.href.endsWith(".mp3")) {
-            tracks.push(element.href.split(`/${folder}/`)[1])
+    try {
+        // Fetch folder content directly
+        let a = await fetch(`${folder}/`);
+        let response = await a.text();
+        console.log("Fetch Response:", response); // Debug the response
+
+        let div = document.createElement("div");
+        div.innerHTML = response;
+
+        // Extract links from the response
+        let as = div.getElementsByTagName("a");
+        console.log("Links Found:", as.length); // Debug the number of <a> tags
+
+        tracks = [];
+        for (let index = 0; index < as.length; index++) {
+            const element = as[index];
+            let href = element.getAttribute("href"); // Get raw href
+            console.log("Raw href:", href);
+
+            // Skip if not an .mp3 file
+            if (href.endsWith(".mp3")) {
+                // Clean up the path (convert backslashes to forward slashes)
+                let cleanHref = href.replace(/\\/g, "/");
+                console.log("Cleaned href:", cleanHref);
+
+                // Extract the track name (remove folder prefix)
+                let trackName = cleanHref.split("/").pop();
+                tracks.push(trackName);
+            }
         }
+
+        console.log("Tracks:", tracks); // Debug the tracks array
+
+        // Show all the tracks in the playlist
+        let trackUL = document.querySelector(".trackList").getElementsByTagName("ul")[0];
+        trackUL.innerHTML = "";
+        for (const track of tracks) {
+            trackUL.innerHTML += `<li><img class="invert" width="34" src="img/music.svg" alt="">
+                                <div class="info">
+                                    <div>${track.replaceAll("%20", " ")}</div>
+                                    <div></div>
+                                </div>
+                                <div class="playnow">
+                                    <span>Play Now</span>
+                                    <img class="invert" src="img/play.svg" alt="">
+                                </div> </li>`;
+        }
+
+        // Attach an event listener to each track
+        Array.from(document.querySelector(".trackList").getElementsByTagName("li")).forEach(e => {
+            e.addEventListener("click", () => {
+                playMusic(e.querySelector(".info").firstElementChild.innerHTML.trim());
+            });
+        });
+
+        return tracks;
+    } catch (error) {
+        console.error("Error in getTracks:", error); // Log the error
+        return [];
     }
- 
-
-
-    // Show all the tracks in the playlist
-    let trackUL = document.querySelector(".trackList").getElementsByTagName("ul")[0]
-    trackUL.innerHTML = ""
-    for (const track of tracks) {
-        trackUL.innerHTML = trackUL.innerHTML + `<li><img class="invert" width="34" src="img/music.svg" alt="">
-                            <div class="info">
-                                <div> ${track.replaceAll("%20", " ")}</div>
-                                <div></div>
-                            </div>
-                            <div class="playnow">
-                                <span>Play Now</span>
-                                <img class="invert" src="img/play.svg" alt="">
-                            </div> </li>`;
-    }
-
-    // Attach an event listener to each track
-    Array.from(document.querySelector(".trackList").getElementsByTagName("li")).forEach(e => {
-        e.addEventListener("click", element => {
-            playMusic(e.querySelector(".info").firstElementChild.innerHTML.trim())
-
-        })
-    })
-
-    return tracks
 }
 
 const playMusic = (track, pause = false) => {
