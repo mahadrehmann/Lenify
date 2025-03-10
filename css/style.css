@@ -324,6 +324,12 @@ body {
     padding: 0 12px;
 }
 
+.loop {
+    width: 60px;
+    color: black;
+}
+
+
 
 .volume {
     display: flex;

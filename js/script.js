@@ -95,10 +95,43 @@ async function displayAlbums() {
     });
 }
 
+// Function to show a notification at the bottom center
+function showNotification(message) {
+    // Create the notification element
+    let notif = document.createElement("div");
+    notif.textContent = message;
+    
+    // Styling the notification element
+    notif.style.position = "fixed";
+    notif.style.bottom = "110px";
+    notif.style.left = "83%";
+    notif.style.transform = "translateX(-50%)";
+    notif.style.backgroundColor = "rgba(0, 0, 0, 0.52)";
+    notif.style.color = "#fff";
+    notif.style.padding = "15px 20px";
+    notif.style.borderRadius = "40px";
+    notif.style.fontSize = "15px";
+    notif.style.zIndex = "1000";
+    
+    // Append to the body
+    document.body.appendChild(notif);
+    
+    setTimeout(() => {
+      notif.style.transition = "opacity 1s ease";
+      notif.style.opacity = "0";
+      
+      // Remove the notification after fade out
+      setTimeout(() => {
+        notif.remove();
+      }, 1000);
+    }, 2000);
+  }
+  
+  
 async function main() {
-    // Get the list of all the tracks
-    await getTracks("tracks/1.Nasheeds")
-    playMusic(tracks[0], true)
+
+    document.querySelector(".trackinfo").innerHTML= ""
+
 
     // Display all the albums on the page
     await displayAlbums()
@@ -182,6 +215,23 @@ async function main() {
         }
 
     })
+
+    // Event listener for the loop button
+    document.querySelector(".loop").addEventListener("click", () => {
+        // Toggle the loop property of the audio element
+        currentTrack.loop = !currentTrack.loop;
+        
+        // Update the loop button image
+        const loopImg = document.querySelector(".loop img");
+        if (currentTrack.loop) {
+        loopImg.src = "img/loop-on.svg";
+        showNotification("Loop on");
+        } else {
+        loopImg.src = "img/loop.svg";
+        showNotification("Loop off");
+        }
+    });
+
 }
 
 main() 
