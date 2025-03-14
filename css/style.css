@@ -172,7 +172,8 @@ body {
 .play {
     width: 28px;
     height: 28px;
-    background-color: #1fdf64;
+    background-color: #ff8a00;
+    /* filter: invert(1); */
     border-radius: 50%;
     padding: 4px;
     display: flex;
@@ -206,6 +207,7 @@ body {
 
 .loginbtn {
     background-color: white;
+    
     border-radius: 21px;
     color: black;
     padding: 10px;

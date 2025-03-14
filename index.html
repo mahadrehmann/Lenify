@@ -11,11 +11,8 @@
             background-image: url('img/back.gif');
             background-repeat: no-repeat;
             background-attachment: fixed;
-            /* background-size: 100% 100%; */
             background-size: cover;
-            /* Maintain original aspect ratio */
             background-position: center;
-            /* Center the GIF */
         }
 
         @font-face {
@@ -37,7 +34,6 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            /* Full viewport height */
             text-align: center;
         }
 
@@ -45,26 +41,20 @@
         @media (max-width: 768px) {
             .center {
                 width: 80%;
-                /* Reduce width for smaller screens */
             }
 
             .container {
                 padding: 10px;
-                /* Add padding for better spacing */
             }
 
             img {
                 max-width: 90%;
-                /* Ensure images fit within the viewport */
                 height: auto;
-                /* Maintain aspect ratio */
             }
 
             button {
                 width: 90%;
-                /* Make button responsive */
                 font-size: 1rem;
-                /* Adjust font size for smaller screens */
             }
         }
     </style>
@@ -73,7 +63,7 @@
 <body>
 
     <div class="container">
-        <!-- Brand/logo -->
+        <!-- logo -->
         <img src="img/lenifyLogo.png" alt="Lenify" style="width:320px;" class="center">
         <br>
         <img src="img/tagline.png" alt style="width:500px;" class="center">

@@ -7,7 +7,6 @@ function secondsToMinutesSeconds(seconds) {
     if (isNaN(seconds) || seconds < 0) {
         return "00:00";
     }
-
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = Math.floor(seconds % 60);
 
@@ -29,11 +28,12 @@ async function getTracks(folder) {
     let trackUL = document.querySelector(".trackList ul");
     trackUL.innerHTML = "";
     for (const track of tracks) {
+        let displayName = track.name.replace(/\.mp3$/, "");
         trackUL.innerHTML += `
-            <li>
+            <li data-fullname="${track.name}">
                 <img class="invert" width="34" src="img/music.svg" alt="">
                 <div class="info">
-                    <div>${track.name}</div>
+                    <div>${displayName}</div>
                     <div></div>
                 </div>
                 <div class="playnow">
@@ -43,10 +43,11 @@ async function getTracks(folder) {
             </li>`;
     }
 
-    // Attach event listeners
+    // Attach event listeners: use the full filename from the data attribute
     Array.from(document.querySelectorAll(".trackList li")).forEach(e => {
         e.addEventListener("click", () => {
-            playMusic(e.querySelector(".info").firstElementChild.textContent.trim());
+            let fullName = e.getAttribute("data-fullname");
+            playMusic(fullName);
         });
     });
 
@@ -59,7 +60,7 @@ const playMusic = (track, pause = false) => {
         currentTrack.play();
         play.src = "img/pause.svg";
     }
-    document.querySelector(".trackinfo").innerHTML = decodeURI(track);
+    document.querySelector(".trackinfo").innerHTML = decodeURI(track).replace(/\.mp3$/, "");
     document.querySelector(".tracktime").innerHTML = "00:00 / 00:00";
 }
 
@@ -75,7 +76,7 @@ async function displayAlbums() {
         cardContainer.innerHTML += `
             <div data-folder="${folder}" class="card">
                 <div class="play">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <svg class="invert" width="16" height="16" viewBox="0 0 24 24" fill="none">
                         <path d="M5 20V4L19 12L5 20Z" stroke="#141B34" fill="#000" stroke-width="1.5" stroke-linejoin="round" />
                     </svg>
                 </div>
@@ -131,7 +132,6 @@ function showNotification(message) {
 async function main() {
 
     document.querySelector(".trackinfo").innerHTML= ""
-
 
     // Display all the albums on the page
     await displayAlbums()
